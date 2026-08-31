@@ -6,7 +6,7 @@ An advanced machine learning solution for predicting and personalizing customer 
 
 This project implements an end-to-end machine learning pipeline for offer personalization:
 
-1. **Data Preprocessing**: Loads and cleans customer-offer interaction data with 43+ features
+1. **Data Preprocessing**: Loads and cleans customer-offer interaction data with 70+ features
 2. **Feature Engineering**: Organizes features into categories:
    - Interest Scores (var_1 to var_12)
    - Engagement Features (var_13 to var_16)
