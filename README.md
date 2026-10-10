@@ -1,229 +1,227 @@
 # Offer Personalization ML
 
-An advanced machine learning solution for predicting and personalizing customer offers. This project leverages LightGBM classifiers, SHAP explainability, and interest score prediction to recommend the most relevant offers to customers.
+<p align="center">
+  <strong>Personalized offer ranking with LightGBM, customer-interest modeling, and SHAP explanations.</strong>
+  <br />
+  An end-to-end notebook pipeline that estimates offer redemption likelihood, predicts customer interest profiles, ranks top offers, and explains model outputs.
+</p>
 
-## Project Overview
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-ML-3776AB?logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/LightGBM-Gradient%20Boosting-2C7A3F" alt="LightGBM" />
+  <img src="https://img.shields.io/badge/Explainability-SHAP-7A3E9D" alt="SHAP" />
+  <img src="https://img.shields.io/badge/Notebook-Google%20Colab-F9AB00?logo=googlecolab&logoColor=white" alt="Google Colab" />
+</p>
 
-This project implements an end-to-end machine learning pipeline for offer personalization:
+---
 
-1. **Data Preprocessing**: Loads and cleans customer-offer interaction data with 70+ features
-2. **Feature Engineering**: Organizes features into categories:
-   - Interest Scores (var_1 to var_12)
-   - Engagement Features (var_13 to var_16)
-   - Spend/Debit Patterns (var_17 to var_30)
-   - Offer Metadata (var_32 to var_38)
-   - Rolling CTR/Engagement (var_39 to var_43)
-   - Offer Categories (var_44 to var_50)
-3. **Interest Modeling**: Predicts 12 customer interest scores using LGBMRegressor models
-4. **Redemption Modeling**: Trains a classifier to predict offer redemption probability
-5. **Offer Recommendation**: Generates personalized top-3 offer recommendations per customer
-6. **Explainability**: Uses SHAP to explain predictions and feature contributions
-7. **Reporting**: Generates PDF reports with waterfall plots and SHAP explanations
+## Overview
 
-## Key Features
+Offer Personalization ML explores how customer, engagement, transaction-pattern, and offer-category features can be used to rank offers for each customer.
 
-### Data Processing
-- Handles missing values and outliers
-- Log scaling for monetary variables
-- CTR normalization (0-1 clipping)
-- Train-test split by date or random stratified split
+The notebook combines three modeling tasks:
 
-### Modeling
-- **Interest Models**: 12 separate LGBMRegressor models predict customer interest in categories
-- **Redemption Classifier**: LGBMClassifier predicts offer acceptance probability
-- **Hyperparameters**: Tuned for balanced performance with class weighting
-- **Metrics**: ROC-AUC and PR-AUC for evaluation
+1. **Redemption prediction:** a LightGBM classifier estimates the probability of an offer action/redemption.
+2. **Customer-interest prediction:** 12 LightGBM regressors predict the interest-score fields `var_1`–`var_12`.
+3. **Personalized ranking:** candidates are scored and the top offers are returned for a customer.
 
-### Explainability
-- SHAP Tree Explainers for both interest and redemption models
-- Waterfall plots showing feature contributions
-- Comparison plots for multiple offers
-- Per-customer PDF reports with explanations
-- JSON-friendly explanation outputs
+SHAP is used to investigate feature contributions for the redemption model and interest predictions. The notebook also contains customer-level explanation helpers and PDF report generation.
 
-### Recommendation Engine
-- `recommend_k()`: Returns top-k offers for a customer
-- `explain_customer_interest()`: Shows SHAP contributions for each interest score
-- `explain_redemption()`: Shows what drives offer redemption
-- `unified_offer_explanation()`: Complete explanation with positive/negative drivers
+> This is an experimental personalization pipeline. Model scores are estimates based on the provided dataset, not guarantees of redemption. The notebook accesses customer-offer data and should only be run with authorized, appropriately protected data.
 
-## Files
+## At a glance
 
-- **offer_personalisation.ipynb**: Main Jupyter notebook with full pipeline
-- **customer_interest_averages (1).csv**: Input data with customer interest scores (var_1-var_12)
-- **output files** (generated during execution):
-  - `sample_1000.csv`: Sample of 1000 rows for quick testing
-  - `predictions_offer.csv`: Redemption probabilities for all customer-offer pairs
-  - `top3_offers.csv`: Top 3 offers per customer with scores
-  - `customer_interest_averages.csv`: Aggregated customer interest profiles
-  - `waterfall.png`: SHAP waterfall plot for a single prediction
-  - `compare_offers.png`: SHAP comparison across multiple offers
-  - `cust0_report.pdf`: Example customer report with explanations
-
-## Installation
-
-### Requirements
-```bash
-pip install pandas numpy scikit-learn lightgbm shap matplotlib
-```
-
-Or with conda:
-```bash
-conda install pandas numpy scikit-learn lightgbm shap matplotlib
-```
-
-**Note**: The notebook is designed for Google Colab. To run locally:
-1. Remove the Google Drive mounting code (cell 2)
-2. Update file paths to your local directory
-
-## Usage
-
-### Running the Full Pipeline
-```python
-# 1. Load data
-df = pd.read_parquet(filepath)
-
-# 2. Preprocess features
-# (automatic in cells 5-7)
-
-# 3. Train models
-# - Interest models (cell 31)
-# - Redemption classifier (cell 43)
-
-# 4. Generate recommendations
-customer = df_pred.iloc[0]
-top3 = recommend_k(customer, offers_unique, k=3)
-print(top3)
-
-# 5. Explain predictions
-exp = unified_offer_explanation(customer, offer)
-print(json.dumps(exp, indent=2))
-
-# 6. Generate reports
-generate_customer_pdf_report(customer_idx=0, filename="report.pdf", top_k_offers=3)
-```
-
-### Key Functions
-
-#### Recommendation
-- `recommend_k(customer_row, offers_df, k=3)`: Get top-k offers
-- `compare_offers_shap(customer_row, offers_df, explainer, clf_feature_list, top_k=10, save_path=None)`: Compare offers visually
-
-#### Explanation
-- `explain_customer_interest(customer_row)`: SHAP for interest scores
-- `explain_redemption(row)`: SHAP for redemption probability
-- `unified_offer_explanation(customer_row, offer_row)`: Complete explanation
-- `plot_shap_waterfall_for_row(row, explainer, clf_feature_list)`: Force plot
-
-#### Utilities
-- `fix_input_row(row, clf_feature_list)`: Prepare data for model
-- `get_shap_matrix(shap_out, positive_class_index=1)`: Normalize SHAP output
-- `normalize_shap_output(shap_output)`: Handle different SHAP formats
-
-## Model Performance
-
-The models are evaluated using:
-- **ROC-AUC**: Measures overall discrimination ability
-- **PR-AUC**: Emphasizes performance on positive class (redeemed offers)
-- **Per-interest-model metrics**: RMSE, MAE, R² for each interest score
-
-*Note*: Specific metrics depend on your dataset. Run the notebook to see actual performance.
+| Component | Notebook implementation |
+| --- | --- |
+| Input data | Parquet customer-offer interaction dataset |
+| Data preprocessing | Numeric coercion, missing-value filling, log scaling for selected monetary variables, CTR clipping |
+| Redemption model | `LGBMClassifier` with class weighting |
+| Interest models | 12 separate `LGBMRegressor` models for `var_1`–`var_12` |
+| Ranking | `recommend_k(customer_row, offers_df, k=3)` |
+| Explainability | SHAP TreeExplainer, summary / waterfall / offer-comparison outputs |
+| Reporting | Customer PDF report with offer rankings and explanations |
 
 ## Architecture
 
-### Data Flow
+```mermaid
+flowchart TD
+    A[Customer-offer interaction data] --> B[Cleaning and preprocessing]
+    B --> C[Feature engineering]
+    C --> D[Temporal train/test split]
+    D --> E[LightGBM redemption classifier]
+    D --> F[12 LightGBM interest regressors]
+    E --> G[Predicted redemption probabilities]
+    F --> H[Predicted customer interest profiles]
+    G --> I[Score customer-offer pairs]
+    H --> I
+    I --> J[Top-K offers per customer]
+    J --> K[SHAP explanations]
+    K --> L[Plots and customer PDF reports]
 ```
-Raw Data → Preprocessing → Feature Engineering → 
-  ├─→ Interest Model Training → Predictions
-  ├─→ Redemption Classifier Training → Probabilities
-  └─→ Offer Recommendation & SHAP Explanations
+
+Editable diagram source: [`docs/diagrams/architecture.mmd`](docs/diagrams/architecture.mmd).
+
+## Modeling workflow
+
+### 1. Data preparation
+
+The notebook loads a Parquet dataset and works with `customer_id`, `offer_id`, event timestamps, `offer_action`, and feature columns `var_1`–`var_50`.
+
+Feature families used in the notebook include:
+
+| Feature group | Columns | Intended signal |
+| --- | --- | --- |
+| Customer interest scores | `var_1`–`var_12` | Category-level interest profiles |
+| Engagement features | `var_13`–`var_16` | Interaction and engagement patterns |
+| Spend/debit patterns | `var_17`–`var_30` | Monetary behavior |
+| Offer metadata | `var_32`–`var_38` | Offer-related attributes |
+| CTR / engagement | `var_39`–`var_43` | Click-through and related engagement signals |
+| Offer categories | `var_44`–`var_50` | Encoded offer-category attributes |
+
+Preprocessing includes converting `var_*` columns to numeric values, filling missing values with zero, applying `log1p` to selected high-variance fields, and clipping selected CTR variables to the range `[0, 1]`. Confirm the business meaning and preprocessing assumptions for each field before using this with another dataset.
+
+### 2. Redemption prediction
+
+The notebook trains a LightGBM classifier to estimate `P(offer_action = 1 | features)`. Its first evaluation reports ROC-AUC and PR-AUC on a temporal test set.
+
+The first reported classifier run in the notebook shows:
+
+| Metric | Reported value |
+| --- | ---: |
+| ROC-AUC | 0.763 |
+| PR-AUC | 0.222 |
+
+A later classifier run, using a separate feature setup in the notebook, reports:
+
+| Metric | Reported value |
+| --- | ---: |
+| ROC-AUC | 0.8903 |
+| PR-AUC | 0.5549 |
+
+These results come from different stages/configurations in the notebook and should not be treated as a direct apples-to-apples comparison without reconciling the feature construction, target setup, and split. PR-AUC also depends strongly on positive-class prevalence.
+
+### 3. Customer-interest prediction
+
+Twelve individual LightGBM regressors are trained for `var_1` through `var_12`. The notebook evaluates each with RMSE, MAE, and \(R^2\), then uses the predicted interests as part of the recommendation workflow.
+
+Example reported metrics for the first interest target:
+
+| Target | RMSE | MAE | \(R^2\) |
+| --- | ---: | ---: | ---: |
+| `var_1` | 119.5395 | 7.7137 | 0.7390 |
+| `var_2` | 113.3345 | 7.9522 | 0.7540 |
+
+The output is target-specific; metric scales depend on the target scale. Consult the notebook outputs for the full set of 12 regression results.
+
+### 4. Top-K personalized ranking
+
+The `recommend_k()` helper constructs customer-offer candidate rows, predicts the interest fields, scores candidates with the redemption classifier, sorts by score, and returns the top `k` offers.
+
+The default example returns the top three offers for a selected customer. Ranking scores should be interpreted as model scores; their calibration and business effectiveness require additional evaluation.
+
+### 5. Explainability with SHAP
+
+The notebook includes explanations at several levels:
+
+- Summary analysis for the 12 interest models.
+- SHAP feature contributions for the redemption classifier.
+- Waterfall explanations for an individual prediction.
+- Comparisons of candidate offers for a customer.
+- A unified explanation helper combining customer and offer signals.
+- PDF report generation.
+
+### SHAP visualizations
+
+**Interest-model summary**
+
+![SHAP summary for interest prediction](docs/images/shap-interest-summary.png)
+
+**Redemption classifier explanation**
+
+![SHAP summary for redemption classification](docs/images/shap-redemption-summary.png)
+
+**Individual offer prediction**
+
+![SHAP waterfall explanation](docs/images/shap-redemption-waterfall.png)
+
+**Comparing candidate offers**
+
+![SHAP comparison across offers](docs/images/shap-offer-comparison.png)
+
+## Repository contents
+
+```text
+Offer-Personalization/
+├── offer_personalisation.ipynb       # Main end-to-end notebook
+├── README.md
+├── compare_offers.png                # SHAP comparison image already in the repo
+├── waterfall.png                     # SHAP waterfall image already in the repo
+├── customer_interest_averages (1).csv
+└── docs/
+    ├── diagrams/
+    │   └── architecture.mmd
+    └── images/
+        ├── shap-interest-summary.png
+        ├── shap-redemption-summary.png
+        ├── shap-redemption-waterfall.png
+        └── shap-offer-comparison.png
 ```
 
-### Feature Categories
-| Category | Range | Purpose |
-|----------|-------|---------|
-| Interest Scores | var_1-var_12 | Customer category preferences |
-| Engagement | var_13-var_16 | Historical interaction patterns |
-| Spend Patterns | var_17-var_30 | Monetary behavior features |
-| Offer Metadata | var_32-var_38 | Offer characteristics |
-| CTR Features | var_39-var_43 | Click-through rate metrics |
-| Categories | var_44-var_50 | Offer categories (one-hot encoded) |
+Generated outputs include `predictions_offer.csv`, `top3_offers.csv`, `customer_interest_averages.csv`, plots, and customer PDF reports. They are produced when their corresponding notebook cells run.
 
-## Troubleshooting
+## Getting started
 
-### Common Issues
+The notebook was authored for Google Colab and includes Google Drive mounting and a Drive-based data path. For local use, remove the Colab Drive-mounting cell and update the Parquet path.
 
-**Issue**: `KeyError: 'offer_id_encoded'` in recommendation functions
-- **Solution**: Ensure `offer_le.fit_transform()` has been executed before calling recommendation functions
+### Requirements
 
-**Issue**: SHAP values are `None` or empty
-- **Solution**: Verify the classifier `clf` has been trained and `explainer_clf` initialized
+The notebook imports these main libraries:
 
-**Issue**: Missing columns in predictions
-- **Solution**: Verify all expected columns exist in input data; use `fix_input_row()` helper
+```bash
+python -m pip install pandas numpy scikit-learn lightgbm shap matplotlib pyarrow jupyter
+```
 
-**Issue**: Notebook runs but PDF generation fails
-- **Solution**: Install matplotlib: `pip install matplotlib`
+Depending on your environment and notebook cells, you may also need `google-colab` (only in Colab) and packages used for PDF/plot generation.
 
-## Advanced Usage
+### Run the notebook
 
-### Custom Recommendations
+```bash
+git clone https://github.com/anjani24/Offer-Personalization.git
+cd Offer-Personalization
+jupyter notebook offer_personalisation.ipynb
+```
+
+Place your authorized Parquet dataset at a local path and update `filepath` in the notebook. The original notebook uses:
+
 ```python
-# Get offers for a specific customer ID
-customer_data = df_pred[df_pred['customer_id'] == '1000125'].iloc[0]
-top_offers = recommend_k(customer_data, offers_unique, k=5)
+df = pd.read_parquet(filepath)
 ```
 
-### Batch Explanations
-```python
-# Explain top-3 offers for multiple customers
-for idx in range(100):
-    customer = df_pred.iloc[idx]
-    exp = unified_offer_explanation(customer, offers_unique.iloc[0])
-    print(f"Customer {idx}: {exp['probability']:.3f} probability")
-```
+**Data privacy:** do not commit raw customer-level data, personally identifiable information, credentials, or internal datasets to a public repository. Use synthetic or properly anonymized data for public demos.
 
-### Export Results
-```python
-# Save all recommendations
-df_out.to_csv('all_offers_scored.csv', index=False)
+## Important implementation notes
 
-# Save top-3 aggregated by customer
-top3_offers.to_csv('personalized_offers.csv', index=False)
+- The notebook contains separate modeling stages and feature configurations. Record the exact configuration and split alongside any metric comparison.
+- The initial dataset has a substantial class imbalance for the redemption task; ROC-AUC and PR-AUC should be considered together.
+- The notebook applies `log1p` to selected monetary columns. Ensure those columns are non-negative or handle invalid values deliberately before transformation.
+- Ensure offer IDs and encoded offer-ID mappings are stable and consistently applied when producing new recommendations.
+- For production use, persist a versioned preprocessing pipeline, label encoder, models, and expected feature order together.
+- SHAP explanations describe model behavior, not causal effects or guarantees that changing a feature will change redemption.
 
-# Save customer profiles
-df_avg.to_csv('customer_profiles.csv', index=False)
-```
+## Future improvements
 
-## Output Interpretation
+- [ ] Package preprocessing, feature schema, encoders, and models as a versioned inference pipeline.
+- [ ] Add temporal backtesting and ranking metrics such as Precision@K, Recall@K, and NDCG@K.
+- [ ] Check probability calibration and measure lift against a simple baseline.
+- [ ] Add data validation for missing, out-of-range, and negative values before log transforms.
+- [ ] Add tests for offer-ID encoding, feature-order consistency, and top-K uniqueness.
+- [ ] Separate restricted customer data from the public code repository.
+- [ ] Add CI for notebook validation and reusable helper functions.
 
-### `predictions_offer.csv`
-- `customer_id`: Customer identifier
-- `offer_id`: Offer identifier
-- `p_redeem`: Predicted redemption probability (0-1)
+## Tech stack
 
-### `top3_offers.csv`
-- Best offers for each customer ranked by probability
-- One row per (customer, offer) pair, up to 3 per customer
+Python · pandas · NumPy · scikit-learn · LightGBM · SHAP · Matplotlib · Jupyter / Google Colab · Parquet
 
-### `customer_interest_averages.csv`
-- Aggregated customer interest profiles
-- Columns: `customer_id`, `var_1` to `var_12`
-- Values: Average interest scores (0-100 range)
+---
 
-## Performance Optimization
-
-For large datasets:
-1. **Reduce SHAP sample size**: Change `5000` to smaller value in sampling cells
-2. **Use tree_limit**: Add `tree_limit` parameter to SHAP for faster computation
-3. **Batch processing**: Process customers in chunks instead of all at once
-4. **Disable PDF generation**: Skip report generation for speed
-
-
-## License
-
-This project is open-source. Modify and use as needed for your offer personalization needs.
-
-## Contact & Support
-
-For issues or questions, please refer to the notebook comments or open an issue in the repository.
+This project demonstrates a modeling and explainability workflow. Production deployment would additionally require privacy controls, offline ranking evaluation, monitoring for drift, and online experimentation before claiming business impact.

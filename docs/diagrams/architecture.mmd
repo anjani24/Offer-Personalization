@@ -1,0 +1,13 @@
+flowchart TD
+    A[Customer-offer interaction data] --> B[Cleaning and preprocessing]
+    B --> C[Feature engineering]
+    C --> D[Temporal train/test split]
+    D --> E[LightGBM redemption classifier]
+    D --> F[12 LightGBM interest regressors]
+    E --> G[Predicted redemption probabilities]
+    F --> H[Predicted customer interest profiles]
+    G --> I[Score eligible customer-offer pairs]
+    H --> I
+    I --> J[Top-K offers per customer]
+    J --> K[SHAP explanations]
+    K --> L[Plots and customer PDF reports]
